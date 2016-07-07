@@ -31,7 +31,37 @@ class EmptyChannel:
         """
         return []
 
+class SphereObstruction(EmptyChannel):
+    """
+     a channel with a sphere obstruction
+    """
 
+    def __init__(self,r,x_c,y_c,z_c):
+        """
+          just need to define the radius and position of the center of the obstacle.
+          it is up to the caller to verify that the object will fit within the intended
+          channel.  If it does not fit, the obstacle will effectively be
+          truncated at the channel boundaries
+         
+        """
+        self.r = r
+        self.x_c = x_c
+        self.y_c = y_c
+        self.z_c = z_c
+ 
+    def get_Lo(self):
+        return self.r*2.
+
+    def get_obstList(self,X,Y,Z):
+        """
+            return a list of all indices all indices within boundary of sphere 
+        """
+
+        x = np.array(X); y = np.array(Y); z = np.array(Z);
+        dist = (x - self.x_c)**2 + (y - self.y_c)**2 + (z - self.z_c)**2
+       
+        return list(np.where(dist < self.r**2))
+       
 
 def fluid_properties(fluid_str):  
    """
@@ -77,7 +107,7 @@ class FluidChannel:
         self.Nx = math.ceil((N_divs-1)*(Lx_p/Lo))+1
         self.Nz = math.ceil((N_divs-1)*(Lz_p/Lo))+1
         self.nnodes = self.Nx*self.Ny*self.Nz
-   
+        print "Creating channel with %g lattice points." % self.nnodes
         x = np.linspace(0.,Lx_p,self.Nx).astype(np.float32);
         y = np.linspace(0.,Ly_p,self.Ny).astype(np.float32);
         z = np.linspace(0.,Lz_p,self.Nz).astype(np.float32);
@@ -96,9 +126,12 @@ class FluidChannel:
         self.inlet_list = np.where(self.z==0)
         self.outlet_list = np.where(self.z==Lz_p)
         
+        print "Getting obstacle list"
         # get obstacle list
         self.obst_list = self.obst.get_obstList(self.x[:],self.y[:],self.z[:])
+        print "obst list has %d members" % len(list(self.obst_list))
 
+        print "Generating channel solid boundaries"
         # set channel walls
         self.set_channel_walls(wallList)
 
@@ -112,12 +145,13 @@ class FluidChannel:
             np.intersect1d(self.outlet_list[:],self.solid_list[:]))
         self.obst_list = np.setxor1d(self.obst_list[:],
             np.intersect1d(self.obst_list[:],self.solid_list[:]))
+        print "obst list now has %d members" % len(list(self.obst_list))
         
     def write_bc_vtk(self):
         """
          write node lists to properly formatted VTK files
         """
-
+        print "Creating boundary condition arrays"
         obst_array = np.zeros(self.nnodes)
         obst_array[list(self.obst_list)] = 100.
 
@@ -136,6 +170,7 @@ class FluidChannel:
         dx = self.x[1] - self.x[0]
         spacing = [dx, dx, dx] #uniform lattice
         
+        print "Writing boundary conditions to VTK files"
         writeVTK(inlet_array,'inlet','inlet.vtk',dims,origin,spacing)
         writeVTK(outlet_array,'outlet','outlet.vtk',dims,origin,spacing)
         writeVTK(obst_array,'obst','obst.vtk',dims,origin,spacing)
