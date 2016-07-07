@@ -103,8 +103,11 @@ class FluidChannel:
         self.set_channel_walls(wallList)
 
         # now eliminate overlap between node lists
+
+        #print type(self.inlet_list)
         self.inlet_list = np.setxor1d(self.inlet_list[:],
             np.intersect1d(self.inlet_list[:],self.solid_list[:]))
+        #print type(self.inlet_list)
         self.outlet_list = np.setxor1d(self.outlet_list[:],
             np.intersect1d(self.outlet_list[:],self.solid_list[:]))
         self.obst_list = np.setxor1d(self.obst_list[:],
@@ -118,14 +121,15 @@ class FluidChannel:
         obst_array = np.zeros(self.nnodes)
         #obst_array[self.obst_list] = 100.
 
+        #print type(self.inlet_list)
         inlet_array = np.zeros(self.nnodes)
-        inlet_array[self.inlet_list] = 200.
+        inlet_array[list(self.inlet_list)] = 200.
 
         outlet_array = np.zeros(self.nnodes)
-        outlet_array[self.outlet_list] = 300.
+        outlet_array[list(self.outlet_list)] = 300.
 
         solid_array = np.zeros(self.nnodes)
-        solid_array[self.solid_list] = 500.
+        solid_array[list(self.solid_list)] = 500.
         
         dims = [int(self.Nx), int(self.Ny), int(self.Nz)]
         origin = [0., 0., 0.]
@@ -143,10 +147,10 @@ class FluidChannel:
         """
          set up to 4 walls as solid walls for the simulation
         """
-        solid_list_a = []
-        solid_list_b = []
-        solid_list_c = []
-        solid_list_d = []
+        solid_list_a = np.empty(0).flatten()
+        solid_list_b = np.empty(0).flatten()
+        solid_list_c = np.empty(0).flatten()
+        solid_list_d = np.empty(0).flatten()
 
         for w in walls:
             if w=='right':
