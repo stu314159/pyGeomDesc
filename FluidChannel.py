@@ -62,6 +62,57 @@ class SphereObstruction(EmptyChannel):
        
         return list(np.where(dist < self.r**2))
        
+class EllipticalScourPit(EmptyChannel):
+    """
+     a channel with an elliptical scour pit with prescribed properties
+     corresponds to case 3 of Bryan's geometry_desc.m
+    """
+
+    def __init__(self,x_c,z_c,cyl_rad):
+        """
+          constructor giving the x and z coordinates of the scour pit along with
+          the radius of the cylindrical piling
+        """
+        self.x_c = x_c
+        self.z_c = z_c
+        self.cyl_rad = cyl_rad
+
+    def get_Lo(self):
+        return self.cyl_rad*2.
+
+    def get_obstList(self,X,Y,Z):
+        """
+         return a list of all indices of lattice points within the boundaries of the
+         scour pit obstacle
+
+        """
+        x = np.array(X); y = np.array(Y); z = np.array(Z);
+        ellip_a = 2.*2.*self.cyl_rad
+        ellip_b = 2.*self.cyl_rad
+        ellip_c = 8.*self.cyl_rad
+        ellip_x = self.x_c
+        ellip_z = self.z_c + self.cyl_rad
+        ellip_y = ellip_b # why?
+
+        floor_part = np.array(np.where(y < ellip_b)).flatten()
+        cyl_part = np.array(np.where( (x - self.x_c)**2 + 
+                       (z - self.z_c)**2 < self.cyl_rad**2)).flatten()
+
+        scour_pit = np.array(np.where( (x - ellip_x)**2/(ellip_a**2) + 
+                        (y - ellip_y)**2/(ellip_b**2) +
+                        (z - ellip_z)**2/(ellip_c**2) <= 1.)).flatten()
+
+        # remove the scour pit from the floor
+        obst_list = np.setxor1d(floor_part[:], 
+                        np.intersect1d(floor_part[:],scour_pit[:]))
+
+
+        # then add the cylinder
+        obst_list = np.union1d(obst_list[:],cyl_part[:])
+
+        return list(obst_list[:])
+
+
 
 def fluid_properties(fluid_str):  
    """
