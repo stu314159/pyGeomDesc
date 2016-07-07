@@ -122,8 +122,7 @@ outlet_array = np.ones(len(x))
 
 
 # make the solid nodes on the x == 0, x == Lx_p, y == 0, and y == Ly_p boundaries
-
-#solid_list = np.where((x == 0) or (x == Lx_p) or (y == 0) or (y == Ly_p))
+# God help us; this appears to be the best way
 solid_list_a = np.array(np.where((x==0.))).flatten()
 solid_list_b = np.array(np.where((x == Lx_p))).flatten()
 solid_list_c = np.array(np.where((y == 0.))).flatten()
