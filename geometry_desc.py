@@ -102,28 +102,66 @@ spacing = [dx,dy,dz]
 
 print 'preparing output for vtk'
 obst_array = np.ones(len(x)); 
-for i in obst_list:
-  obst_array[i] = 100.0
+#for i in obst_list:
+#  obst_array[i] = 100.0
+#obst_array[obst_list]= 100.0
 
 print 'writing to vtk file'
 writeVTK(obst_array,'obstacle','obst.vtk',dims,origin,spacing);
 
+inlet_list = np.where(z==0)
+inlet_array = np.ones(len(x))
+#inlet_array[inlet_list] = 200.0
+#writeVTK(inlet_array,'inlet','inlet.vtk',dims,origin,spacing)
 
 
+outlet_list = np.where(z==Lz_p)
+outlet_array = np.ones(len(x))
+#outlet_array[outlet_list] = 300.0
+#writeVTK(outlet_array,'outlet','outlet.vtk',dims,origin,spacing)
 
 
-#fig = plt.figure()
-#ax = fig.add_subplot(111,projection='3d',aspect='equal')
-#ax.scatter(x[obst_list],y[obst_list],z[obst_list],c='r',marker='o')
-#
-#ax.set_xlabel('X Label')
-#ax.set_ylabel('Y Label')
-#ax.set_zlabel('Z Label')
-#ax.set_xlim3d(0.,Lx_p)
-#ax.set_ylim3d(0.,Ly_p)
-#ax.set_zlim3d(0.,Lz_p)
-##ax.pbaspect = [Lx_p,Ly_p,Lz_p]
-##ax.auto_scale_xyz([0, Lx_p], [0, Ly_p], [0, Lz_p])
-#plt.show()
+# make the solid nodes on the x == 0, x == Lx_p, y == 0, and y == Ly_p boundaries
+
+#solid_list = np.where((x == 0) or (x == Lx_p) or (y == 0) or (y == Ly_p))
+solid_a = np.where((x==0.))
+solid_b = np.where((x == Lx_p))
+solid_c = np.where((y == 0.))
+solid_d = np.where((y == Ly_p))
+solid_list = np.union1d(solid_a,solid_b)
+solid_list = np.union1d(solid_list,solid_c)
+solid_list = np.union1d(solid_list,solid_d)
+
+solid_array = np.ones(len(x))
+solid_array[solid_list] = 500.0
+writeVTK(solid_array,'solid','solid.vtk',dims,origin,spacing)
+
+# remove solid nodes from the inlet node list:
+inlet_list = np.setxor1d(inlet_list,np.intersect1d(inlet_list,solid_list))
+outlet_list = np.setxor1d(outlet_list,np.intersect1d(outlet_list,solid_list))
+obst_list = np.setxor1d(obst_list,np.intersect1d(obst_list,solid_list))
+
+inlet_array[inlet_list] = 200.0
+outlet_array[outlet_list] = 300.0
+obst_array[obst_list] = 100.0
+
+writeVTK(inlet_array,'inlet','inlet.vtk',dims,origin,spacing)
+writeVTK(outlet_array,'outlet','outlet.vtk',dims,origin,spacing)
+writeVTK(obst_array,'obst','obst.vtk',dims,origin,spacing)
+
+
+fig = plt.figure()
+ax = fig.add_subplot(111,projection='3d',aspect='equal')
+ax.scatter(x[obst_list],y[obst_list],z[obst_list],c='r',marker='o')
+
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
+ax.set_xlim3d(0.,Lx_p)
+ax.set_ylim3d(0.,Ly_p)
+ax.set_zlim3d(0.,Lz_p)
+#ax.pbaspect = [Lx_p,Ly_p,Lz_p]
+#ax.auto_scale_xyz([0, Lx_p], [0, Ly_p], [0, Lz_p])
+plt.show()
 
 
