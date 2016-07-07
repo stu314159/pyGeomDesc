@@ -140,9 +140,14 @@ class FluidChannel:
         #print type(self.inlet_list)
         self.inlet_list = np.setxor1d(self.inlet_list[:],
             np.intersect1d(self.inlet_list[:],self.solid_list[:]))
+        self.inlet_list = np.setxor1d(self.inlet_list[:],
+            np.intersect1d(self.inlet_list[:],self.obst_list[:]))
         #print type(self.inlet_list)
         self.outlet_list = np.setxor1d(self.outlet_list[:],
             np.intersect1d(self.outlet_list[:],self.solid_list[:]))
+        self.outlet_list = np.setxor1d(self.outlet_list[:],
+            np.intersect1d(self.outlet_list[:],self.obst_list[:]))
+
         self.obst_list = np.setxor1d(self.obst_list[:],
             np.intersect1d(self.obst_list[:],self.solid_list[:]))
         print "obst list now has %d members" % len(list(self.obst_list))

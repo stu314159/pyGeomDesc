@@ -7,7 +7,7 @@ an object and find lattice points within the object.  Additionally,
 determine which lattice points are on the inlet, outlet and channel solid 
 boundary surfaces
 
-
+Currently this is maintained in the repository for legacy reasons.
 
 """
 
