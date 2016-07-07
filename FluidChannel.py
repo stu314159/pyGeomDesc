@@ -119,7 +119,7 @@ class FluidChannel:
         """
 
         obst_array = np.zeros(self.nnodes)
-        #obst_array[self.obst_list] = 100.
+        obst_array[list(self.obst_list)] = 100.
 
         #print type(self.inlet_list)
         inlet_array = np.zeros(self.nnodes)
