@@ -66,7 +66,7 @@ Lx_p = 1. # "thickness"
 Ly_p = 2. # "height"
 Lz_p = 3. # "length"
 
-Ny_divs = 82. # number of divisions for the characteristic length
+Ny_divs = 66. # number of divisions for the characteristic length
 Lo = 1.
 Ny = int(math.ceil((Ny_divs-1)*(Ly_p/Lo))+1)
 Nx = int(math.ceil((Ny_divs-1)*(Lx_p/Lo))+1)
@@ -124,13 +124,14 @@ outlet_array = np.ones(len(x))
 # make the solid nodes on the x == 0, x == Lx_p, y == 0, and y == Ly_p boundaries
 
 #solid_list = np.where((x == 0) or (x == Lx_p) or (y == 0) or (y == Ly_p))
-solid_a = np.where((x==0.))
-solid_b = np.where((x == Lx_p))
-solid_c = np.where((y == 0.))
-solid_d = np.where((y == Ly_p))
-solid_list = np.union1d(solid_a,solid_b)
-solid_list = np.union1d(solid_list,solid_c)
-solid_list = np.union1d(solid_list,solid_d)
+solid_list_a = np.array(np.where((x==0.))).flatten()
+solid_list_b = np.array(np.where((x == Lx_p))).flatten()
+solid_list_c = np.array(np.where((y == 0.))).flatten()
+solid_list_d = np.array(np.where((y == Ly_p))).flatten()
+solid_list = np.array(np.union1d(solid_list_a,solid_list_b)); 
+solid_list = np.array(np.union1d(solid_list,solid_list_c))
+solid_list = np.array(np.union1d(solid_list,solid_list_d))
+
 
 solid_array = np.ones(len(x))
 solid_array[solid_list] = 500.0
@@ -150,18 +151,18 @@ writeVTK(outlet_array,'outlet','outlet.vtk',dims,origin,spacing)
 writeVTK(obst_array,'obst','obst.vtk',dims,origin,spacing)
 
 
-fig = plt.figure()
-ax = fig.add_subplot(111,projection='3d',aspect='equal')
-ax.scatter(x[obst_list],y[obst_list],z[obst_list],c='r',marker='o')
-
-ax.set_xlabel('X Label')
-ax.set_ylabel('Y Label')
-ax.set_zlabel('Z Label')
-ax.set_xlim3d(0.,Lx_p)
-ax.set_ylim3d(0.,Ly_p)
-ax.set_zlim3d(0.,Lz_p)
-#ax.pbaspect = [Lx_p,Ly_p,Lz_p]
-#ax.auto_scale_xyz([0, Lx_p], [0, Ly_p], [0, Lz_p])
-plt.show()
+#fig = plt.figure()
+#ax = fig.add_subplot(111,projection='3d',aspect='equal')
+#ax.scatter(x[obst_list],y[obst_list],z[obst_list],c='r',marker='o')
+#
+#ax.set_xlabel('X Label')
+#ax.set_ylabel('Y Label')
+#ax.set_zlabel('Z Label')
+#ax.set_xlim3d(0.,Lx_p)
+#ax.set_ylim3d(0.,Ly_p)
+#ax.set_zlim3d(0.,Lz_p)
+##ax.pbaspect = [Lx_p,Ly_p,Lz_p]
+##ax.auto_scale_xyz([0, Lx_p], [0, Ly_p], [0, Lz_p])
+#plt.show()
 
 
