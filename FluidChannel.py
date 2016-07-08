@@ -86,21 +86,22 @@ class EllipticalScourPit(EmptyChannel):
          scour pit obstacle
 
         """
-        x = np.array(X); y = np.array(Y); z = np.array(Z);
+       
         ellip_a = 2.*2.*self.cyl_rad
         ellip_b = 2.*self.cyl_rad
         ellip_c = 8.*self.cyl_rad
         ellip_x = self.x_c
         ellip_z = self.z_c + self.cyl_rad
-        ellip_y = ellip_b # why?
+        ellip_y = ellip_b 
 
-        floor_part = np.array(np.where(y < ellip_b)).flatten()
-        cyl_part = np.array(np.where( (x - self.x_c)**2 + 
-                       (z - self.z_c)**2 < self.cyl_rad**2)).flatten()
+        floor_part = np.array(np.where(Y < ellip_b)).flatten()
 
-        scour_pit = np.array(np.where( (x - ellip_x)**2/(ellip_a**2) + 
-                        (y - ellip_y)**2/(ellip_b**2) +
-                        (z - ellip_z)**2/(ellip_c**2) <= 1.)).flatten()
+        dist = (X - self.x_c)**2 + (Z - self.z_c)**2;
+        cyl_part = list(np.array(np.where( dist < self.cyl_rad**2)).flatten())
+
+       scour_pit = np.array(np.where( (X - ellip_x)**2/(ellip_a**2) + 
+                        (Y - ellip_y)**2/(ellip_b**2) +
+                        (Z - ellip_z)**2/(ellip_c**2) <= 1.)).flatten()
 
         # remove the scour pit from the floor
         obst_list = np.setxor1d(floor_part[:], 
@@ -109,7 +110,7 @@ class EllipticalScourPit(EmptyChannel):
 
         # then add the cylinder
         obst_list = np.union1d(obst_list[:],cyl_part[:])
-
+        
         return list(obst_list[:])
 
 
@@ -180,7 +181,7 @@ class FluidChannel:
         print "Getting obstacle list"
         # get obstacle list
         self.obst_list = self.obst.get_obstList(self.x[:],self.y[:],self.z[:])
-        print "obst list has %d members" % len(list(self.obst_list))
+        
 
         print "Generating channel solid boundaries"
         # set channel walls
@@ -188,12 +189,11 @@ class FluidChannel:
 
         # now eliminate overlap between node lists
 
-        #print type(self.inlet_list)
         self.inlet_list = np.setxor1d(self.inlet_list[:],
             np.intersect1d(self.inlet_list[:],self.solid_list[:]))
         self.inlet_list = np.setxor1d(self.inlet_list[:],
             np.intersect1d(self.inlet_list[:],self.obst_list[:]))
-        #print type(self.inlet_list)
+        
         self.outlet_list = np.setxor1d(self.outlet_list[:],
             np.intersect1d(self.outlet_list[:],self.solid_list[:]))
         self.outlet_list = np.setxor1d(self.outlet_list[:],
@@ -201,7 +201,7 @@ class FluidChannel:
 
         self.obst_list = np.setxor1d(self.obst_list[:],
             np.intersect1d(self.obst_list[:],self.solid_list[:]))
-        print "obst list now has %d members" % len(list(self.obst_list))
+       
         
     def write_bc_vtk(self):
         """
