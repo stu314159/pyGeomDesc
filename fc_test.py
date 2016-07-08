@@ -20,7 +20,13 @@ import FluidChannel as fc
 #openChannel4 = fc.FluidChannel(wallList = ['left','right','top'], N_divs = 50)
 #openChannel4.write_bc_vtk()
 
-openChannel5  = fc.FluidChannel(Lx_p = 1., Ly_p = 1., Lz_p = 10.,
-                    N_divs = 15,
-                    obst = fc.SphereObstruction(r = 0.2, x_c = 0.5, y_c = 0.5, z_c = 5.))
-openChannel5.write_bc_vtk()
+#openChannel5  = fc.FluidChannel(Lx_p = 1., Ly_p = 1., Lz_p = 10.,
+#                    N_divs = 15,
+#                    obst = fc.SphereObstruction(r = 0.2, x_c = 0.5, y_c = 0.5, z_c = 5.))
+#openChannel5.write_bc_vtk()
+
+openChannel6 = fc.FluidChannel(Lx_p = 1., Ly_p = 1., Lz_p = 8.,
+                   N_divs = 13,
+                   obst = fc.EllipticalScourPit(0.5, 4., 0.1))
+openChannel6.write_bc_vtk()
+openChannel6.write_mat_file()

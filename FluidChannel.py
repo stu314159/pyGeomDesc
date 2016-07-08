@@ -8,6 +8,7 @@ import math
 import argparse
 import numpy as np
 from vtkHelper import saveStructuredPointsVTK_ascii as writeVTK
+import scipy.io
 
 class EmptyChannel:  
     """
@@ -62,6 +63,58 @@ class SphereObstruction(EmptyChannel):
        
         return list(np.where(dist < self.r**2))
        
+class EllipticalScourPit(EmptyChannel):
+    """
+     a channel with an elliptical scour pit with prescribed properties
+     corresponds to case 3 of Bryan's geometry_desc.m
+    """
+
+    def __init__(self,x_c,z_c,cyl_rad):
+        """
+          constructor giving the x and z coordinates of the scour pit along with
+          the radius of the cylindrical piling
+        """
+        self.x_c = x_c
+        self.z_c = z_c
+        self.cyl_rad = cyl_rad
+
+    def get_Lo(self):
+        return self.cyl_rad*2.
+
+    def get_obstList(self,X,Y,Z):
+        """
+         return a list of all indices of lattice points within the boundaries of the
+         scour pit obstacle
+
+        """
+       
+        ellip_a = 2.*2.*self.cyl_rad
+        ellip_b = 2.*self.cyl_rad
+        ellip_c = 8.*self.cyl_rad
+        ellip_x = self.x_c
+        ellip_z = self.z_c + self.cyl_rad
+        ellip_y = ellip_b 
+
+        floor_part = np.array(np.where(Y < ellip_b)).flatten()
+
+        dist = (X - self.x_c)**2 + (Z - self.z_c)**2;
+        cyl_part = list(np.array(np.where( dist < self.cyl_rad**2)).flatten())
+
+        scour_pit = np.array(np.where( (X - ellip_x)**2/(ellip_a**2) + 
+                        (Y - ellip_y)**2/(ellip_b**2) +
+                        (Z - ellip_z)**2/(ellip_c**2) <= 1.)).flatten()
+
+        # remove the scour pit from the floor
+        obst_list = np.setxor1d(floor_part[:], 
+                        np.intersect1d(floor_part[:],scour_pit[:]))
+
+
+        # then add the cylinder
+        obst_list = np.union1d(obst_list[:],cyl_part[:])
+        
+        return list(obst_list[:])
+
+
 
 def fluid_properties(fluid_str):  
    """
@@ -129,7 +182,7 @@ class FluidChannel:
         print "Getting obstacle list"
         # get obstacle list
         self.obst_list = self.obst.get_obstList(self.x[:],self.y[:],self.z[:])
-        print "obst list has %d members" % len(list(self.obst_list))
+        
 
         print "Generating channel solid boundaries"
         # set channel walls
@@ -137,12 +190,11 @@ class FluidChannel:
 
         # now eliminate overlap between node lists
 
-        #print type(self.inlet_list)
         self.inlet_list = np.setxor1d(self.inlet_list[:],
             np.intersect1d(self.inlet_list[:],self.solid_list[:]))
         self.inlet_list = np.setxor1d(self.inlet_list[:],
             np.intersect1d(self.inlet_list[:],self.obst_list[:]))
-        #print type(self.inlet_list)
+        
         self.outlet_list = np.setxor1d(self.outlet_list[:],
             np.intersect1d(self.outlet_list[:],self.solid_list[:]))
         self.outlet_list = np.setxor1d(self.outlet_list[:],
@@ -150,8 +202,31 @@ class FluidChannel:
 
         self.obst_list = np.setxor1d(self.obst_list[:],
             np.intersect1d(self.obst_list[:],self.solid_list[:]))
-        print "obst list now has %d members" % len(list(self.obst_list))
-        
+       
+    def write_mat_file(self):
+        """
+          generate the mat file to interface with genInput.py.  Needs to save
+          Lx_p, Ly_p, Lz_p, Lo, Ny_divs, rho_p, nu_p, snl, inl and onl.
+
+          note that the snl and obst_list need to be combined into one list 
+
+        """
+        mat_dict = {}
+        mat_dict['Lx_p'] = self.Lx_p
+        mat_dict['Ly_p'] = self.Ly_p
+        mat_dict['Lz_p'] = self.Lz_p
+        mat_dict['Lo'] = self.obst.get_Lo()
+        mat_dict['Ny_divs'] = self.N_divs
+        mat_dict['rho_p'] = self.rho_p
+        mat_dict['nu_p'] = self.nu_p
+        mat_dict['snl'] = list(np.union1d(self.obst_list[:],self.solid_list[:]))
+        mat_dict['inl'] = list(self.inlet_list[:])
+        mat_dict['onl'] = list(self.outlet_list[:])
+
+        scipy.io.savemat('geometry_description',mat_dict)
+
+
+    
     def write_bc_vtk(self):
         """
          write node lists to properly formatted VTK files
