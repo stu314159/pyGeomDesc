@@ -29,3 +29,4 @@ openChannel6 = fc.FluidChannel(Lx_p = 1., Ly_p = 1., Lz_p = 8.,
                    N_divs = 13,
                    obst = fc.EllipticalScourPit(0.5, 4., 0.1))
 openChannel6.write_bc_vtk()
+openChannel6.write_mat_file()

@@ -8,6 +8,7 @@ import math
 import argparse
 import numpy as np
 from vtkHelper import saveStructuredPointsVTK_ascii as writeVTK
+import scipy.io
 
 class EmptyChannel:  
     """
@@ -99,7 +100,7 @@ class EllipticalScourPit(EmptyChannel):
         dist = (X - self.x_c)**2 + (Z - self.z_c)**2;
         cyl_part = list(np.array(np.where( dist < self.cyl_rad**2)).flatten())
 
-       scour_pit = np.array(np.where( (X - ellip_x)**2/(ellip_a**2) + 
+        scour_pit = np.array(np.where( (X - ellip_x)**2/(ellip_a**2) + 
                         (Y - ellip_y)**2/(ellip_b**2) +
                         (Z - ellip_z)**2/(ellip_c**2) <= 1.)).flatten()
 
@@ -202,7 +203,30 @@ class FluidChannel:
         self.obst_list = np.setxor1d(self.obst_list[:],
             np.intersect1d(self.obst_list[:],self.solid_list[:]))
        
-        
+    def write_mat_file(self):
+        """
+          generate the mat file to interface with genInput.py.  Needs to save
+          Lx_p, Ly_p, Lz_p, Lo, Ny_divs, rho_p, nu_p, snl, inl and onl.
+
+          note that the snl and obst_list need to be combined into one list 
+
+        """
+        mat_dict = {}
+        mat_dict['Lx_p'] = self.Lx_p
+        mat_dict['Ly_p'] = self.Ly_p
+        mat_dict['Lz_p'] = self.Lz_p
+        mat_dict['Lo'] = self.obst.get_Lo()
+        mat_dict['Ny_divs'] = self.N_divs
+        mat_dict['rho_p'] = self.rho_p
+        mat_dict['nu_p'] = self.nu_p
+        mat_dict['snl'] = list(np.union1d(self.obst_list[:],self.solid_list[:]))
+        mat_dict['inl'] = list(self.inlet_list[:])
+        mat_dict['onl'] = list(self.outlet_list[:])
+
+        scipy.io.savemat('geometry_description',mat_dict)
+
+
+    
     def write_bc_vtk(self):
         """
          write node lists to properly formatted VTK files
